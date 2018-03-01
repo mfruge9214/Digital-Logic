@@ -1,0 +1,42 @@
+module SevenSegment(value, overflow, disp);
+input [3:0] value;
+input overflow;
+output reg [7:0] disp;
+
+reg p;
+always @(*)
+begin
+	case(value)
+		4'b0000 : disp [7:0] <= 8'b11000000;// 0 <= 7'h7E;
+		4'b0001 : disp [7:0] <= 8'b11111001;// 1 <= 7'h60;
+		4'b0010 : disp [7:0] <= 8'b10100100;// 2 <= 7'h6D;
+		4'b0011 : disp [7:0] <= 8'b10110000;// 3 <= 7'h79;
+		4'b0100 : disp [7:0] <= 8'b10011001;// 4 <= 7'h33;
+		4'b0101 : disp [7:0] <= 8'b10010010;// 5 <= 7'h5B;
+		4'b0110 : disp [7:0] <= 8'b10000010;// 6 <= 7'h5F;
+		4'b0111 : disp [7:0] <= 8'b11111000;// 7 <= 7'h70;
+		4'b1000 : disp [7:0] <= 8'b10000000;// 8 <= 7'h7F;
+		4'b1001 : disp [7:0] <= 8'b10011000;// 9 <= 7'h7B;
+		4'b1010 : disp [7:0] <= 8'b10001000;// A <= 7'h77;
+		4'b1011 : disp [7:0] <= 8'b10000011;// B <= 7'h1F;
+		4'b1100 : disp [7:0] <= 8'b11000110;// C <= 7'h4E;
+		4'b1101 : disp [7:0] <= 8'b10100001;// D <= 7'h3D;
+		4'b1110 : disp [7:0] <= 8'b10000110;// E <= 7'h4F;
+		4'b1111 : disp [7:0] <= 8'b10001110;// F <= 7'h47;
+	endcase
+	
+	//reg p;
+	if(overflow == 1) 
+	begin
+		//assign disp[7] = 0;
+		p = 0;
+	end	
+	else
+	begin 
+		p = 1;
+	end
+	
+	disp[7] = p;
+end 
+
+endmodule
