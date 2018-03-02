@@ -26,11 +26,12 @@ module MasterA(
 				2: LEDT = LEDM;
 				3: LEDT = LEDD;
 			endcase
+			
 		end
 		
 		assign LED = LEDT;
+		mux display(Addresult, Subtresult, Multresult, Divresult, select, out);	
 		
-		mux display(Addresult, Subtresult, Multresult, Divresult, select, out);
 		
 endmodule 
 		
@@ -65,13 +66,24 @@ endmodule
 			input [3:0] A,
 			input [3:0] B,
 			output [3:0] out,
-			output negative
+			output reg led
 			);
+			always @(A | B)
+			begin
+				if (B>A)
+				begin
+					led=1;
+				end
+				else
+				begin
+					led=0;
+				end
+			end
 			
 			wire [3:0] b;
 			assign b = ~B + 1;
 			
-			Adder add(A, b, out, negative);
+			assign out= A+ b;
 endmodule
 			
 		module Mult_2(in, out, carry);
