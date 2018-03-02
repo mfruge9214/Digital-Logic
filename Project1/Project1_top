@@ -1,7 +1,8 @@
 module Project1_top(
 	input [1:0]KEY,
 	input [9:0]SW,
-	//input MAX10_CLK1_50,
+	input MAX10_CLK1_50,
+	//input ADC_CLK_10,
 	output [7:0]HEX0,
 	output [7:0]HEX1,
 	output [7:0]HEX2,
@@ -12,98 +13,49 @@ module Project1_top(
 	);
 		
 	wire [3:0] X, Y; // adder and subtractor inputs
-	//wire [7:0] Z; // mult. and divider input      WE DONT NEED AN 8 BIT INPUT BECAUSE WE CAN CONCATONATE X AND Y
-	wire [7:0] Vone, Vtwo, Vthree, Vfour; // 7 segment inputs
+	wire [7:0] Vone, Vtwo, Vthree;
+	wire [9:0] Vfour;
 	wire [1:0] select;
-	wire over; // overflow for subtractor
-	wire carryAdd, carrySub, carryMult, carryDiv; // carries for adder, mult, and divider
 	
 	
 	assign X[3:0] = SW[3:0];
 	assign Y[3:0] = SW[7:4];
-	//assign Z[7:0] = SW[7:0];
 	assign select[1:0] = SW[9:8];
-	//assign select[1] = SW[9];
+		
+	reg [1:0] buttons =0;
 	
-	
-	reg [1:0] buttons =0;	
 	always @(posedge KEY[0])
 		begin
 			buttons = buttons + 1;
 		end
 		
-//	always @(posedge KEY[1])
-//		begin
-//			buttons = buttons -1;
-//	end
-	
-	
 	wire c;
 	wire [7:0] choice;
-	wire overflow;
-	assign overflow = 0;
-	wire LED;
+	reg [9:0]LEDT;
 	
-	//Adder myadd(X,Y,Vone,carryAdd);
-	//SevenSegment seven(Vone[3:0], overflow, HEX0);
-	//Subtractor mySubt(X,Y,Vsub,over);
-	//Mult_2 multiplied(Z, Vmult, carryMult);
-	//Div_2 divided(X,Z,carryDiv);
-	//Equal test(X, Y, Vone[3:0]);		GOOD
-	//Greater test(X, Y, Vone[3:0]);		GOOD
-	//LessThan test(X,Y, Vone[3:0]);		GOOD
-	//Max test(X,Y, Vone);
+	MasterA Arith(X, Y, select, Vone, LED);
+	MasterL Logical(X, Y, select, Vtwo);
+	MasterC Comp(X,Y,select, Vthree);
+	MasterM magical(MAX10_CLK1_50, Vfour);
+		
+	mux choose(Vone, Vtwo, Vthree, 0, buttons, choice);
 	
-	MasterA(X, Y, select, Vone, LED);
-	MasterL(X, Y, select, Vtwo);
-	MasterC(X, Y, select, Vthree);
-	//MasterM // HAVENT MADE THIS YET
-	
-	mux choose(Vone, Vtwo, Vthree, Vfour, KEY[1:0], choice);
-	
-	
-	SevenSegment(choice[3:0], overflow, HEX0);
-	SevenSegment(choice[7:4], overflow, HEX1);
-	SevenSegment(X, 0, HEX2);
-	SevenSegment(Y, 0, HEX3);
-	SevenSegment(select, 0, HEX4);
-	SevenSegment(buttons, 0, HEX5);
-	
-	//andmod log(X, Y, Vone[3:0]);
-	//SevenSegment(Vone[3:0], overflow, HEX1);
-	
-	//SevenSegment first(Vone[0], 0, HEX0);
-	//SevenSegment second(Vone[1], 0, HEX1);
-	//SevenSegment third(Vone[2], 0, HEX2);
-	//SevenSegment second(Vone[3], 0, HEX4);
-
-	assign c=LED;
-	
-	
-	reg o;
-	always @(c)
+	SevenSegment(choice[3:0], HEX0);
+	SevenSegment(choice[7:4], HEX1);
+	SevenSegment(X, HEX2);
+	SevenSegment(Y, HEX3);
+	SevenSegment(select, HEX4);
+	SevenSegment(buttons, HEX5);
+	always @(KEY)
 	begin
-		//assign carry=0;
-		if (c == 1)
-			begin
-				//assign carry = 1;
-				o = 1;
-				//LEDR[9] = 1;
-			end
-		else
-			begin
-				//assign carry = 0;
-				o = 0;
-				//LEDR[9] = 0;
-			end
+	case(buttons)
+		0: LEDT[9] <= LED;
+		1: LEDT[9:0] <=0;
+		2: LEDT[9:0] <=0;
+		3: LEDT[9:0] <= Vfour;
+	endcase
 	end
 	
-	assign LEDR[9] = o;
-	
-//	always @(posedge KEY[0])
-//	begin 
-//		LEDR[0] = 1;
-//	end
-
+	assign LEDR= LEDT;
 
 endmodule 
