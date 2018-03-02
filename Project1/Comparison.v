@@ -13,6 +13,7 @@ module MasterC(
 	Maxmod(X, Y, sigbit4);
 	
 	mux comparedisplay(sigbit1, sigbit2, sigbit3, sigbit4, select, out);
+	
 endmodule
 
 module Equalmod(
@@ -34,7 +35,6 @@ module Equalmod(
 			equal =0;
 		end
 	end
-	//assign out[0]=equal;
 	assign out[0] = equal;
 endmodule 
 
