@@ -1,35 +1,23 @@
-//module MasterLogical(
-//	input [1:0] SW,
-//	input [3:0] X,
-//	input [3:0] Y,
-//	input [7:0] Z,
-//	output reg [7:0] outOne,
-//	output reg [7:0] outTwo
-//	);
-//	
-//	reg [3:0] o, p;
-//	AND do(X,Y,o);
-//	
-//	always @(*) 
-//	begin 
-//		case(o)
-//		begin 
-//			4'b0000 : outOne[3:0] <= 8'b00000000;
-//			4'b0001 : outOne[3:0] <= 8'b00000001;
-//			4'b0010 : outOne[3:0] <= 8'b00000010;
-//			4'b0011 : outOne[3:0] <= 8'b00000011;
-//		end 
-//		
-//		case(p)
-//		begin 
-//			
-//		end 
-//	end 
-//	
-//	
-//	
-//	
-//endmodule 
+module MasterL(
+	input [3:0] X,
+	input [3:0] Y,
+	input [1:0] select,
+	output [7:0] out
+	);
+	
+	wire [7:0] Andout, Orout, Xorout, Notout;
+	
+	andmod one(X,Y, Andout);
+	ormod two(X,Y, Orout);
+	xormod three(X,Y, Xorout);
+	notmod four({X,Y}, Notout);
+	
+	mux display(Andout, Orout, Xorout, Notout, select, out);
+	
+	
+	
+	
+endmodule 
 
  module andmod(
 	input [3:0] X,
@@ -60,8 +48,7 @@ endmodule
 
  module notmod(
 	input [7:0] Z,
-	output [3:0] outOne,
-	output [3:0] outTwo
+	output [7:0] out
 	);
 	
 	assign out = ~Z;
