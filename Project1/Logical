@@ -10,7 +10,7 @@ module MasterL(
 	andmod one(X,Y, Andout);
 	ormod two(X,Y, Orout);
 	xormod three(X,Y, Xorout);
-	notmod four({X,Y}, Notout);
+	notmod four({Y,X}, Notout);
 	
 	mux display(Andout, Orout, Xorout, Notout, select, out);
 	
