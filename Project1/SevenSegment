@@ -1,5 +1,5 @@
 module SevenSegment(value, overflow, disp);
-input [3:0] value;
+input [7:0] value;
 input overflow;
 output reg [7:0] disp;
 
