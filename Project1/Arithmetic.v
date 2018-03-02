@@ -8,20 +8,31 @@ module MasterA(
 
 		wire [3:0] Addresult, Subtresult;
 		wire [7:0] Multresult, Divresult;
-		wire LEDindicator;
+		wire LEDA, LEDS, LEDM, LEDD;
+		reg LEDT;
+		wire [7:0] Z = {Y,X};
+		
+		Adder add(X, Y, Addresult, LEDA);
+		Subtractor subt(X, Y, Subtresult, LEDS);
+		Mult_2 mult(Z, Multresult, LEDM);
+		Div_2 div(Z, Divresult, LEDD);
+		
 		
 		always @(select)
 		begin
-		
-		Adder add(X,Y, Addresult, LEDindicator);
-		Subtractor subt(X,Y, Subtresult, LEDindicator);
-		Mult_2 mult({Y,X}, Multresult, LEDindicator);
-		Div_2 div({Y,X}, Divresult, LEDindicator);
-		mux display(Addresult, Subtresult, Multresult, Divresult, select, out);
-		
+			case (select)
+				0: LEDT = LEDA;
+				1: LEDT = LEDS;
+				2: LEDT = LEDM;
+				3: LEDT = LEDD;
+			endcase
 		end
 		
+		assign LED = LEDT;
 		
+		mux display(Addresult, Subtresult, Multresult, Divresult, select, out);
+		
+endmodule 
 		
 
 		module FullAdder(x, y, s, ci, co);
@@ -60,8 +71,8 @@ module MasterA(
 			wire [3:0] b;
 			assign b = ~B + 1;
 			
-			Adder add(A, b, out, negative);	
-		endmodule
+			Adder add(A, b, out, negative);
+endmodule
 			
 		module Mult_2(in, out, carry);
 			input [7:0] in;
