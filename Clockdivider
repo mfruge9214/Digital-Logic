@@ -1,0 +1,34 @@
+module clockdivider(
+	input CLK,
+	output LED,
+	input reg start,
+	output reg t
+	)
+	parameter ms=50000;
+	parameter limit=start;
+	reg counter, t;
+	assign counter=0;
+	assign t=0;
+	genvar state=0;
+	
+	always @(posedge CLK)
+	begin : block;
+		if (counter <= ms)
+		begin
+			counter = counter + 1;
+		end
+		else
+		begin
+			t= t + 1;
+			counter = 0;
+		end
+	end
+	if (state==0)
+	begin
+		if (t == limit)
+			begin
+			assign LED = 1;
+			assign state = 1;
+			end
+	end
+endmodule
