@@ -14,12 +14,16 @@ module Project_2_top(
 	
 	
 	parameter A=3'b000, B=3'b001, C=3'b010, D=3'b011, E=3'b100, F=3'b100;
-	reg CS=3'b000;
+	reg CS=A;
 	wire [10:0] randomnum;
-	wire [10:0] randtime;
+	wire [10:0] mstime;
 	wire [10:0] meastime;
-	reg [10:0] savetime;
+	reg [14:0] yourtime;
 	reg [10:0] hiscore;
+	reg [3:0] thousanths;
+	reg [3:0] hundreths;
+	reg [3:0] tenths;
+	reg [2:0] ones;
 	
 	always@(posedge SW[0])
 	begin
@@ -49,7 +53,7 @@ module Project_2_top(
 		begin
 			CS=B;
 		end
-		if(LEDR[9:0] ==0 & KEY[1]==0)
+		if(LEDR[9:0] == 10'b0000000000 && KEY[1]==0)
 		begin
 			CS=C;
 		end
@@ -58,8 +62,12 @@ module Project_2_top(
 	if(CS==C)
 	begin
 		lfsr shift(MAX10_CLK1_50, randomnum[10:0]);
-		clockdivider first(MAX10_CLK1_50, randomnum[10:0],0, LEDR[9:0], randtime[10:0]);
-		CS=D;
+		clockdivider first(MAX10_CLK1_50, mstime[10:0]);
+		if(mstime >= randomnum)
+		begin
+			LEDR[9:0]=10'b1111111111;
+			CS=D;
+		end
 	end
 	
 	
@@ -67,12 +75,12 @@ module Project_2_top(
 	begin
 		if(KEY[1]==0)
 		begin
-			clockdivider second(MAX10_CLK1_50, 0,1, LEDR[9:0], meastime[10:0])
-			// meastime goes to counter, which outputs to the decoder
+			bcdCounter meas(MAX10_CLK1_50, ones, tenths, hundreths, thousanths);
+			
 		end
 		always@(posedge KEY[1])
 		begin
-			savetime = meastime[10:0];
+			yourtime <= {ones [2:0], tenths[3:0], hundteths[3:0], thousanths[3:0]} ;
 			CS=E;
 		end
 	end
@@ -80,10 +88,10 @@ module Project_2_top(
 	if(CS==E)
 	begin
 		LEDR[9:0]=10'b0000000000;
-		// show savetime on seven seg
-		if(savetime<hiscore)
+		// show yourtime on seven seg
+		if(yourtime<hiscore)
 		begin
-			hiscore=savetime;
+			hiscore=yourtime;
 			assign LEDR[9:0]=10'b1010101010;
 		end
 		always@(posedge KEY[1])
@@ -103,6 +111,7 @@ module Project_2_top(
 	end
 endmodule
 		
+	
 	
 	
 	
