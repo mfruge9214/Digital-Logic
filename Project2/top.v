@@ -1,4 +1,4 @@
-module Project_2_top(
+module Project2_top(
 	input [1:0] KEY,
 	input [9:0] SW,
 	input MAX10_CLK1_50,
@@ -11,112 +11,88 @@ module Project_2_top(
 	output [9:0]LEDR
 	);
 	
+	parameter A=3'b000, B=3'b001, C=3'b010, D=3'b011, E=3'b100, F=3'b100; // define states
 	
-	
-	parameter A=3'b000, B=3'b001, C=3'b010, D=3'b011, E=3'b100, F=3'b100;
-	reg CS=A;
-	wire [10:0] randomnum;
-	wire [10:0] mstime;
-	wire [10:0] meastime;
+	reg [2:0] CS; // holds current state
+	reg [9:0] ledreg;
+	reg [10:0] countms;
+	wire millisecond;
+	wire [10:0] randtime;
+	wire [14:0] yourtimew;
 	reg [14:0] yourtime;
 	reg [10:0] hiscore;
-	reg [3:0] thousanths;
-	reg [3:0] hundreths;
-	reg [3:0] tenths;
-	reg [2:0] ones;
+	wire [3:0] thousanths;
+	wire [3:0] hundreths;
+	wire [3:0] tenths;
+	wire [3:0] ones;
+	wire [7:0] disp0, disp1, disp2, disp3;
+	wire enable; // Every module will activate when a different position of enable is active
+	reg enablereg=2'b00;
+		
+	initial CS = A;
+	initial ledreg=10'b0000000000;
 	
-	always@(posedge SW[0])
+	lsfr a(MAX10_CLK1_50, enable, randtime[10:0]);
+	Clockdivider b(MAX10_CLK1_50, enable, millisecond);
+	bcdCounter c(MAX10_CLK1_50, enable, ones[3:0], tenths[3:0], hundreths[3:0], thousanths[3:0]);
+	bcdDecoder d(ones[3:0], tenths[3:0], hundreths[3:0], thousanths[3:0], disp3[7:0], disp2[7:0], disp1[7:0], disp0[7:0]);
+	SevenSegment(disp0, HEX0);
+	SevenSegment(disp1, HEX1);
+	SevenSegment(disp2, HEX2);
+	SevenSegmentOnes(disp3, HEX3);
+	
+	assign LEDR[9:0]=ledreg[9:0];
+	assign enable=enablereg;
+	
+//	always@(posedge SW[0])
+//	begin
+//			CS<=A;
+//			//enable=1;
+//	end
+	
+//	always@(posedge SW[9])
+//	begin
+//			CS<=F;
+//			//enable=
+//	end
+
+	// State A= waiting for signal from KEY[0]
+	// State B= lsfr, activate lights using clock divider, make sure KEY[1] isnt pressed
+	// State C= Wait for stop signal from KEY[1], save the time from the BCD counter, display the time for a little bit
+	// State D= Compare Highscore with saved time
+	// State E= Update highscore
+	// State F= Show highscore
+
+	always@(negedge KEY[0])
 	begin
-		CS=A;
-	end
-	
-	always@(posedge SW[9])
-	begin
-		CS=F;
-	end
-	
-	
-	// State 0
-	// KEY[0]= Start
-	if(CS==A) // Initialize 7-seg to 0's
-	begin
-		// Do Nothing, wait for KEY[0] to be 1 or SW[0] to be 1
-		always@(negedge KEY[0])
+		if(CS==A)
 		begin
 			CS<=B;
+			enablereg<= 2'b01; //activate lsfr
 		end
 	end
 	
-	if(CS==B)
+	always@(posedge millisecond)
 	begin
-		if(LEDR[9:0] ==0 & KEY[1]==1) // 'Delaying the Measurement'
+		if(CS==B)
 		begin
-			CS=B;
+			countms<= countms+1;
+			if(countms==randtime)
+			begin
+				ledreg[9:0]=10'b1111111111;
+				enablereg=2'b10; // Allows time to begin changing (look at bcdCounter function)
+				CS<=C;
+			end
 		end
-		if(LEDR[9:0] == 10'b0000000000 && KEY[1]==0)
-		begin
-			CS=C;
-		end
-	end
+	end		
 	
-	if(CS==C)
+	always@(posedge KEY[1])
 	begin
-		lfsr shift(MAX10_CLK1_50, randomnum[10:0]);
-		clockdivider first(MAX10_CLK1_50, mstime[10:0]);
-		if(mstime >= randomnum)
+		if(CS==C)
 		begin
-			LEDR[9:0]=10'b1111111111;
-			CS=D;
+			ledreg[9:0]=10'b0000000000;
+			CS<=D;
 		end
 	end
-	
-	
-	if(CS==D)
-	begin
-		if(KEY[1]==0)
-		begin
-			bcdCounter meas(MAX10_CLK1_50, ones, tenths, hundreths, thousanths);
-			
-		end
-		always@(posedge KEY[1])
-		begin
-			yourtime <= {ones [2:0], tenths[3:0], hundteths[3:0], thousanths[3:0]} ;
-			CS=E;
-		end
-	end
-	
-	if(CS==E)
-	begin
-		LEDR[9:0]=10'b0000000000;
-		// show yourtime on seven seg
-		if(yourtime<hiscore)
-		begin
-			hiscore=yourtime;
-			assign LEDR[9:0]=10'b1010101010;
-		end
-		always@(posedge KEY[1])
-		begin
-			CS=F;
-		end
-	end
-	
-	
-	if(CS==F)
-	begin
-		//Display Highscore
-		always@(posedge KEY[1])
-		begin
-			CS=A;
-		end
-	end
+
 endmodule
-		
-	
-	
-	
-	
-	
-	
-	
-	
-	
