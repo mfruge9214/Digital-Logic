@@ -18,9 +18,9 @@ module Project2_top(
 	reg [10:0] countms;
 	wire millisecond;
 	wire [10:0] randtime;
-	wire [14:0] yourtimew;
-	reg [14:0] yourtime;
-	reg [10:0] hiscore;
+	//wire [15:0] yourtimew;
+	reg [15:0] yourscore;
+	reg [15:0] hiscore;
 	wire [3:0] thousanths;
 	wire [3:0] hundreths;
 	wire [3:0] tenths;
@@ -31,18 +31,17 @@ module Project2_top(
 		
 	initial CS = A;
 	initial ledreg=10'b0000000000;
+	initial hiscore=16'b1111111111111111;
 	
 	lsfr a(MAX10_CLK1_50, enable, randtime[10:0]);
 	Clockdivider b(MAX10_CLK1_50, enable, millisecond);
 	bcdCounter c(MAX10_CLK1_50, enable, ones[3:0], tenths[3:0], hundreths[3:0], thousanths[3:0]);
 	bcdDecoder d(ones[3:0], tenths[3:0], hundreths[3:0], thousanths[3:0], disp3[7:0], disp2[7:0], disp1[7:0], disp0[7:0]);
-	SevenSegment(disp0, HEX0);
-	SevenSegment(disp1, HEX1);
-	SevenSegment(disp2, HEX2);
-	SevenSegmentOnes(disp3, HEX3);
+	
 	
 	assign LEDR[9:0]=ledreg[9:0];
 	assign enable=enablereg;
+	
 	
 //	always@(posedge SW[0])
 //	begin
@@ -91,8 +90,99 @@ module Project2_top(
 		if(CS==C)
 		begin
 			ledreg[9:0]=10'b0000000000;
+			enablereg= 2'b00;
 			CS<=D;
 		end
 	end
+	
+	always@(ones or tenths or hundreths or thousanths)
+	begin
+		if(CS==D)
+		begin
+			yourscore[15:0]<={ones[3:0], tenths[3:0], hundreths[3:0], thousanths[3:0]};
+			// We need to display this score
+			if(enable!=2'b10) // Happens as soon as KEY[1]  is pressed
+			begin
+				CS<=E;
+			end
+		end
+	end
+	
+	
+	always@(*)
+	begin
+		if(CS==E)
+		begin
+			if(yourscore<hiscore)
+			ledreg=10'b1010101010;
+			hiscore<=yourscore;
+			CS<=F;
+		end
+		else if(CS==F)
+		begin
+			// Display highscore
+		end
+	end
+			
+		
+	always@(posedge KEY[1])
+	begin
+		if(CS==F)
+		begin
+			CS<=A;
+		end
+	end
+		
 
 endmodule
+			
+//
+//	always@(CS)
+//		if(CS==A)
+//		begin
+//			//always@(negedge KEY[0])
+//			//enable=10;
+//			enable<= 6'b000100
+//			CS<=B;
+//			end
+//		end
+//		
+//		if(CS==B)
+//		begin
+//			always@(posedge millisecond) // .5 ms is an edge, so posedge ms is 1 ms
+//			begin
+//				countms<= countms + 1;
+//			end
+//		
+//			if(countms==randtime)
+//			begin
+//				if(~KEY[1])
+//				begin
+//					assign LEDR[9:0]=10'b1111111111;
+//					assign CS=C;
+//				end
+//			end
+//		end
+//		
+//		if(CS==C)
+//		begin
+//			bcdCounter a(MAX10_CLK1_50, ones[3:0], tenths[3:0], hundreths[3:0], thousanths[3:0])
+//			assign yourtimew[15:0]<= {ones, tenths, hundreths, thousanths};
+//			//Display values
+//			always@(posedge KEY[1])
+//			begin
+//				yourtime[15:0]<= yourtimew[15:0];
+//				LEDR[9:0]<=10'b0000000000;
+//				CS<=D;
+//			end
+//		end
+//		
+//		if(CS==D)
+//		begin
+//			if(yourtime<= hiscore)
+//			begin
+//				assign yourtime= hiscore;
+//				assign LEDR=10'b1010101010;
+//			end
+//		end
+//	end
