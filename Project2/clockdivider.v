@@ -1,28 +1,32 @@
-module clockdivider(
+module Clockdivider(
 	input CLK,
-	output [10:0] t
+	input [1:0] enable,
+	output t
 	);
-	parameter ms=50000;
+	parameter ms=25000;
 	//parameter limit=start;
 	reg [15:0] counter;
-	reg [10:0] to;
+	//reg [10:0] to;
+	reg to;
 	//assign counter=0;
 	//to=11'b00000000000;
 	
 	always @(posedge CLK)
 	begin
-		if (counter < ms)
+		if(enable[0])
 		begin
-			counter = counter + 1;
-		end
-		else
-		begin
-			to= to +1;
-			counter = 0;
+			if (counter < ms)
+			begin
+				counter = counter + 1;
+			end
+			else
+			begin
+				to = ~to;
+				counter = 0;
+			end
 		end
 	end
-	
+
 	assign t=to;
 	
 endmodule
-		
