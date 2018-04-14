@@ -1,73 +1,60 @@
 module bcdCounter( 
 	input clk,
-	output reg [2:0] ones,
-	output reg [3:0] tenths,
-	output reg [3:0] hundreths,
-	output reg [3:0] thousandths
+	input [1:0] enable,
+	output [3:0] ones,
+	output [3:0] tenths,
+	output [3:0] hundreths,
+	output [3:0] thousandths
 	);
-
+	
 	parameter reset = 4'b1001;
-	reg [10:0] num;
+	reg [3:0] rones;
+	reg [3:0] rtenths;
+	reg [3:0] rhundreths;
+	reg [3:0] rthousandths;
 	
-	clockdivider(clk, num[10:0]);
-	
-	always@(posedge num)
+	initial
 	begin
-		thousandths = thousandths +1;
-		if (thousandths == reset)
-		begin
-			thousandths <= 4'b0000;
-			hundreths <= hundreths +1;
-		end
+		rones=0;
+		rtenths=0;
+		rhundreths=0;
+		rthousandths=0;
 	end
 	
-	always@(posedge hundreths)
+	always@(posedge clk)
 	begin
-		if(hundreths == reset)
+		if(enable[1]) // IF enable allows this module to go, then it will count, otherwise it will do nothing
 		begin
-			hundreths <= 4'b0000;
-			tenths <= tenths + 1;
+			rthousandths = rthousandths +1;
+			if (rthousandths == reset)
+			begin
+				rthousandths <= 4'b0000;
+				rhundreths <= rhundreths +1;
+			end
 		end
 	end
-	
-	always@(posedge tenths)
+		
+	always@(posedge rhundreths)
 	begin
-		if (tenths == reset)
+		if(rhundreths == reset)
 		begin
-			tenths <= 4'b0000;
-			ones <= ones+1;
+			rhundreths <= 4'b0000;
+			rtenths <= rtenths + 1;
+		end
+	end
+		
+	always@(posedge rtenths)
+	begin
+		if (rtenths == reset)
+		begin
+			rtenths <= 4'b0000;
+			rones <= rones+1;
 		end
 	end
 
-endmodule
-
-//
-////2bit counter
-//module BCDCount(
-//	input clk,
-//	input clear,
-//	input E,
-//	output reg [3:0]BCD1,
-//	output reg [3:0]BCD0
-//	);
-//	
-//	always @(posedge clk)
-//	begin
-//		if(clear)
-//		begin
-//			BCD1 <= 0;
-//			BCD0 <= 0;
-//		end
-//		else if(E)
-//			if(BCD0 == 4'b1001)
-//			begin
-//				BCD0 <= 0;
-//				if(BCD1 == 4'b1001)
-//					BCD1 <= 0;
-//				else
-//					BCD1 <= BCD1 + 1;
-//			end
-//			else 
-//			BCD0 <= BCD0 + 1;
-//		end
-//endmodule
+	assign ones=rones;
+	assign tenths=rtenths;
+	assign hundreths=rhundreths;
+	assign thousandths=rthousandths;
+	
+endmodule 
