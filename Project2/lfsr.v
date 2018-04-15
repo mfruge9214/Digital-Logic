@@ -1,29 +1,39 @@
 module lfsr(
 input clk,
-input  [1:0] enable,
-output [10:0] num
+input enable,
+output reg [10:0] num
 );
-
-	wire feedback = num[9] ^ num[8];
-	reg [10:0] temp = num;
+	
+	initial num= 11'b11010010110;
+	wire feedback = (num[10] ^ num[9]);// & ~(num[3]);
 	always@(posedge clk)
 	begin
-		if(enable[0])
+		if(~enable)
 		begin
-			temp[0]<= feedback;
-			temp[1]<= temp[0];
-			temp[2]<= temp[1];
-			temp[3]<= temp[2];
-			temp[4]<= temp[3];
-			temp[5]<= temp[4];
-			temp[6]<= temp[5];
-			temp[7]<= temp[6];
-			temp[8]<= temp[7];
-			temp[9]<= temp[8];
-			temp[10]<= temp[9];
+			num<= num<<1;
+			num[0]<= feedback;
+//			num[1]<= 1;
+//			num[2]<= 1;
+//			num[3]<= 1;
+//			num[4]<= 1;
+//			num[5]<= 1;
+//			num[6]<= 1;
+//			num[7]<= 1;
+//			num[8]<= 1;
+//			num[9]<= 1;
+//			num[10]<= 1;
+//			num[0]<= feedback;
+//			num[1]<= num[0];
+//			num[2]<= num[1];
+//			num[3]<= num[2];
+//			num[4]<= num[3];
+//			num[5]<= num[4];
+//			num[6]<= num[5];
+//			num[7]<= num[6];
+//			num[8]<= num[7];
+//			num[9]<= num[8];
+//			num[10]<= num[9];
 		end
 	end
 
-	assign num=temp;
-	//Compare(temp, clk, num);
 endmodule 
