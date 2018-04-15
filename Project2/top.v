@@ -1,4 +1,4 @@
-module Project2_top(
+module Project_2(
 	input [1:0] KEY,
 	input [9:0] SW,
 	input MAX10_CLK1_50,
@@ -14,175 +14,96 @@ module Project2_top(
 	parameter A=3'b000, B=3'b001, C=3'b010, D=3'b011, E=3'b100, F=3'b100; // define states
 	
 	reg [2:0] CS; // holds current state
-	reg [9:0] ledreg;
-	reg [10:0] countms;
-	wire millisecond;
+	reg enablelfsr;
+	reg enablecounter;
+	reg trigger;// Enables change of state
 	wire [10:0] randtime;
-	//wire [15:0] yourtimew;
-	reg [15:0] yourscore;
-	reg [15:0] hiscore;
-	wire [3:0] thousanths;
-	wire [3:0] hundreths;
-	wire [3:0] tenths;
+	wire millisecond;
 	wire [3:0] ones;
-	wire [7:0] disp0, disp1, disp2, disp3;
-	wire enable; // Every module will activate when a different position of enable is active
-	reg enablereg=2'b00;
-		
-	initial CS = A;
-	initial ledreg=10'b0000000000;
-	initial hiscore=16'b1111111111111111;
+	wire [3:0] tens;
+	wire [3:0] hundreds;
+	wire [3:0] thousands;
 	
-	lsfr a(MAX10_CLK1_50, enable, randtime[10:0]);
-	Clockdivider b(MAX10_CLK1_50, enable, millisecond);
-	bcdCounter c(MAX10_CLK1_50, enable, ones[3:0], tenths[3:0], hundreths[3:0], thousanths[3:0]);
-	bcdDecoder d(ones[3:0], tenths[3:0], hundreths[3:0], thousanths[3:0], disp3[7:0], disp2[7:0], disp1[7:0], disp0[7:0]);
+	initial
+	begin
+		enablelfsr=0;
+		enablecounter=0;
+		CS=A;
+		trigger=0;
+	end
+	//assign wenablecounter=1;
 	
-	
-	assign LEDR[9:0]=ledreg[9:0];
-	assign enable=enablereg;
-	
-	
-//	always@(posedge SW[0])
+//	always@(KEY[0])
 //	begin
-//			CS<=A;
-//			//enable=1;
+//		if(KEY[0])
+//		begin
+//			enablecounter<=1;
+//		end
+//		else
+//		begin
+//			enablecounter<=0;
+//		end
 //	end
 	
-//	always@(posedge SW[9])
-//	begin
-//			CS<=F;
-//			//enable=
-//	end
-
-	// State A= waiting for signal from KEY[0]
-	// State B= lsfr, activate lights using clock divider, make sure KEY[1] isnt pressed
-	// State C= Wait for stop signal from KEY[1], save the time from the BCD counter, display the time for a little bit
-	// State D= Compare Highscore with saved time
-	// State E= Update highscore
-	// State F= Show highscore
-
-	always@(negedge KEY[0])
-	begin
-		if(CS==A)
-		begin
-			CS<=B;
-			enablereg<= 2'b01; //activate lsfr
-		end
-	end
-	
-	always@(posedge millisecond)
-	begin
-		if(CS==B)
-		begin
-			countms<= countms+1;
-			if(countms==randtime)
-			begin
-				ledreg[9:0]=10'b1111111111;
-				enablereg=2'b10; // Allows time to begin changing (look at bcdCounter function)
-				CS<=C;
-			end
-		end
-	end		
-	
-	always@(posedge KEY[1])
-	begin
-		if(CS==C)
-		begin
-			ledreg[9:0]=10'b0000000000;
-			enablereg= 2'b00;
-			CS<=D;
-		end
-	end
-	
-	always@(ones or tenths or hundreths or thousanths)
-	begin
-		if(CS==D)
-		begin
-			yourscore[15:0]<={ones[3:0], tenths[3:0], hundreths[3:0], thousanths[3:0]};
-			// We need to display this score
-			if(enable!=2'b10) // Happens as soon as KEY[1]  is pressed
-			begin
-				CS<=E;
-			end
-		end
-	end
-	
+	bcdCounter(millisecond, enablecounter, ones, tens, hundreds, thousands);
+	Clockdivider aa(MAX10_CLK1_50, millisecond);
+	lfsr a(MAX10_CLK1_50, enablelfsr, randtime);
+	bcdDecoder q(randtime[3], randtime[2], randtime[1], randtime[0], HEX0, HEX1, HEX2, HEX3);
+	SevenSegment bb(CS, HEX5);
+	SevenSegment cc(KEY[0], HEX4);
 	
 	always@(*)
 	begin
-		if(CS==E)
+		if(KEY[0]==0)
 		begin
-			if(yourscore<hiscore)
-			ledreg=10'b1010101010;
-			hiscore<=yourscore;
-			CS<=F;
-		end
-		else if(CS==F)
-		begin
-			// Display highscore
-		end
-	end
-			
-		
-	always@(posedge KEY[1])
-	begin
-		if(CS==F)
-		begin
-			CS<=A;
+			trigger=1;
+			if((KEY[0]==0) && trigger)
+			begin
+				CS<=B;
+			end
 		end
 	end
 		
-
-endmodule
-			
-//
-//	always@(CS)
-//		if(CS==A)
+//		else if(CS==B)
 //		begin
-//			//always@(negedge KEY[0])
-//			//enable=10;
-//			enable<= 6'b000100
-//			CS<=B;
-//			end
-//		end
-//		
-//		if(CS==B)
-//		begin
-//			always@(posedge millisecond) // .5 ms is an edge, so posedge ms is 1 ms
+//			enablelfsr<=1; //Activate lsfr
+//			if(KEY[0]==1)
 //			begin
-//				countms<= countms + 1;
-//			end
-//		
-//			if(countms==randtime)
-//			begin
-//				if(~KEY[1])
-//				begin
-//					assign LEDR[9:0]=10'b1111111111;
-//					assign CS=C;
-//				end
-//			end
-//		end
-//		
-//		if(CS==C)
-//		begin
-//			bcdCounter a(MAX10_CLK1_50, ones[3:0], tenths[3:0], hundreths[3:0], thousanths[3:0])
-//			assign yourtimew[15:0]<= {ones, tenths, hundreths, thousanths};
-//			//Display values
-//			always@(posedge KEY[1])
-//			begin
-//				yourtime[15:0]<= yourtimew[15:0];
-//				LEDR[9:0]<=10'b0000000000;
-//				CS<=D;
-//			end
-//		end
-//		
-//		if(CS==D)
-//		begin
-//			if(yourtime<= hiscore)
-//			begin
-//				assign yourtime= hiscore;
-//				assign LEDR=10'b1010101010;
+//			enablelfsr<=0;//Deactivate LFSR after an instant
+//			CS<=C;
 //			end
 //		end
 //	end
+		
+//		else if(CS==C and KEY[1]==1)
+//		begin
+//			ledreg[9:0]=10'b0000000000;
+//			enablereg= 2'b00;
+//			CS<=D;
+//		end
+//		else if(CS==F)
+//		begin
+//			CS<=A;
+//		end
+//		
+//		
+//	end 
+//	
+//	
+//	always@(posedge millisecond)
+//	begin
+//		if(CS==B)
+//		begin
+//			countms<= countms+1;
+//			if(countms==randtime)
+//			begin
+//				ledreg[9:0]=10'b1111111111;
+//				enablelfsr=1; // Allows time to begin changing (look at bcdCounter function)
+//				CS<=C;
+//			end
+//		end
+//	end		
+	
+	
+endmodule
+	
