@@ -79,15 +79,15 @@ module bcdDecoder(
 		//end	
 	//end
 
-	assign disp0 = ones;
-	assign disp1 = tenths;
-	assign disp2 = hundreths;
-	assign disp3 = thousandths;
+//	assign disp0[7:0] = ones[3:0];
+//	assign disp1[7:0] = tenths[3:0];
+//	assign disp2 = hundreths;
+//	assign disp3 = thousandths;
 	
 	
-	SevenSegmentOnes(ones, disp3); // displays decimal to indicate seconds
-	SevenSegment(tenths, disp2);
-	SevenSegment(hundreths, disp1);
-	SevenSegment(thousandths, disp0);
+	SevenSegmentOnes m(ones, disp3); // displays decimal to indicate seconds
+	SevenSegment n(tenths, disp2);
+	SevenSegment o(hundreths, disp1);
+	SevenSegment p(thousandths, disp0);
 	
 endmodule 
